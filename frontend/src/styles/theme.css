@@ -1,0 +1,38 @@
+:root {
+  /* Brand */
+  --forest: #163300;
+  --lime: #9fe870;
+  --lime-hover: #8fd95f;
+  --mint: #e2f6d5;
+
+  /* Neutrals */
+  --white: #ffffff;
+  --page-bg: #f6f8f4;
+  --border: #d9ded5;
+  --text: #0e0f0c;
+  --text-muted: #5d6b55;
+
+  /* Risk colors (fraud and alerts) */
+  --risk-low: #2f7d1f;
+  --risk-medium: #e8a317;
+  --risk-high: #d03238;
+  --risk-low-bg: #e2f6d5;
+  --risk-medium-bg: #fff3d6;
+  --risk-high-bg: #fde4e4;
+
+  /* Shape */
+  --radius-card: 24px;
+  --radius-button: 999px;
+  --radius-input: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}

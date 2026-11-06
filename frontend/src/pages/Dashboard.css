@@ -1,0 +1,88 @@
+.dash-page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.dash-logout {
+  background: #9fe870;
+  color: #163300;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dash-logout:hover {
+  background: #8ed95f;
+}
+
+.dash-logo {
+  font-weight: 800;
+  font-size: 22px;
+  color: #163300;
+}
+
+.dash-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.dash-title {
+  font-size: 32px;
+  margin: 0 0 8px;
+}
+
+.dash-sub {
+  color: #666;
+  margin: 0 0 32px;
+}
+
+.dash-card {
+  background: #e6f7e6;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.dash-card-label {
+  margin: 0 0 8px;
+  color: #163300;
+  font-size: 14px;
+}
+
+.dash-card-value {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #163300;
+}
+
+
+.dash-send {
+  margin-top: 20px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: var(--lime);
+  color: var(--forest);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dash-send:hover {
+  background: var(--lime-hover);
+}
+.dash-history {
+  margin-left: 12px;
+}

@@ -1,0 +1,55 @@
+.history-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.amount-in {
+  color: #1a8f3c;
+  font-weight: 600;
+}
+
+.amount-out {
+  color: #c62828;
+  font-weight: 600;
+}
+
+.status {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-completed {
+  background: #e3f6e8;
+  color: #1a8f3c;
+}
+
+.status-flagged {
+  background: #fff4d6;
+  color: #9a6b00;
+}
+
+.status-blocked {
+  background: #fde4e4;
+  color: #c62828;
+}

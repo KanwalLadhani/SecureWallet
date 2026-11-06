@@ -1,0 +1,82 @@
+{
+  "name": "Alert Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alert-bot",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "891a407e-6daa-47d1-b04a-599c9df766c9",
+      "name": "Webhook",
+      "webhookId": "652559ba-1cd7-4153-998d-00c155123829",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "i0zauxXdsA5o04RE",
+          "name": "SecureWallet Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "ALERT_SENDER_EMAIL_HERE",
+        "toEmail": "ADMIN_EMAIL_HERE",
+        "subject": "=[SecureWallet] {{ $json.body.severity }} alert: {{ $json.body.type }}",
+        "emailFormat": "text",
+        "text": "=SecureWallet security alert\n\nType: {{ $json.body.type }}\nSeverity: {{ $json.body.severity }}\nUser email: {{ $json.body.email }}\nDetails: {{ $json.body.message }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0f6a7783-6018-4e48-bbfa-8e52cec9689f",
+      "name": "Send an Email",
+      "webhookId": "186fe37f-3deb-40cb-8844-659166232905",
+      "credentials": {
+        "smtp": {
+          "id": "f1p4unG756ufrawc",
+          "name": "SecureWallet Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "78a61464-884c-41b1-a3da-26380e163401",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3bfc2f120d5da0789771e8ebd9532b965c4129ff0b33ac50fa66be00c16cfbc"
+  },
+  "nodeGroups": [],
+  "id": "GGTb99CyyoEn8mRJ",
+  "tags": []
+}

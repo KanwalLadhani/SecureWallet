@@ -1,0 +1,126 @@
+.aa-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.aa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.aa-title {
+  margin: 0 0 6px;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--forest);
+}
+
+.aa-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.aa-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.aa-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.aa-btn-light {
+  background: var(--white);
+  color: var(--forest);
+}
+
+.aa-btn-light:hover {
+  background: var(--mint);
+}
+
+.aa-message {
+  padding: 24px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.aa-error {
+  background: var(--risk-high-bg);
+  border-color: var(--risk-high);
+  color: var(--risk-high);
+}
+
+.aa-table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow-x: auto;
+}
+
+.aa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.aa-table th {
+  padding: 16px 18px;
+  text-align: left;
+  background: var(--mint);
+  color: var(--forest);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.aa-table td {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.aa-table tbody tr:hover {
+  background: var(--page-bg);
+}
+
+.aa-sev {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-button);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--page-bg);
+  color: var(--text-muted);
+}
+
+.aa-sev-low {
+  background: var(--risk-low-bg);
+  color: var(--risk-low);
+}
+
+.aa-sev-medium {
+  background: var(--risk-medium-bg);
+  color: var(--risk-medium);
+}
+
+.aa-sev-high {
+  background: var(--risk-high-bg);
+  color: var(--risk-high);
+}

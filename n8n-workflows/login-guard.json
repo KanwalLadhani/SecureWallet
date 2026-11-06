@@ -1,0 +1,228 @@
+{
+  "name": "Login Guard",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "login-guard",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3db7b370-1727-4d98-9358-282dd561c3a1",
+      "name": "Webhook",
+      "webhookId": "bd37d735-2b18-412f-8705-672cc81fca97",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "i0zauxXdsA5o04RE",
+          "name": "SecureWallet Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*)::int AS failed_count\nFROM login_attempts\nWHERE email = $1\n  AND success = false\n  AND attempted_at > NOW() - INTERVAL '5 minutes';",
+        "options": {
+          "queryReplacement": "={{ $('Webhook').item.json.body.email }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        448,
+        0
+      ],
+      "id": "1345bd37-65b0-4f82-b2fa-0d357db273f3",
+      "name": "Count Failures",
+      "credentials": {
+        "postgres": {
+          "id": "gVvXZzqbKswps4g4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "24085784-b521-4462-96e4-f331af852e06",
+              "leftValue": "={{ $json.failed_count }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4902e563-d73f-4eb4-8885-bda56b13a447",
+      "name": "Too Many Failures?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO security_alerts (alert_type, severity, email, message)\nSELECT 'LOGIN_BRUTE_FORCE', 'HIGH', $1::text, 'Failed logins in last 5 minutes: ' || $2::text\nWHERE NOT EXISTS (\n  SELECT 1 FROM security_alerts\n  WHERE alert_type = 'LOGIN_BRUTE_FORCE'\n    AND email = $1::text\n    AND created_at > NOW() - INTERVAL '5 minutes'\n)\nRETURNING alert_type, severity, email, message;",
+        "options": {
+          "queryReplacement": "={{ $('Webhook').item.json.body.email }}, {{ $json.failed_count }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "5b81c013-a37f-424b-8c19-db193f1f01ca",
+      "name": "Save Alert",
+      "credentials": {
+        "postgres": {
+          "id": "gVvXZzqbKswps4g4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO login_attempts (email, success)\nVALUES ($1, $2);",
+        "options": {
+          "queryReplacement": "={{ $('Webhook').item.json.body.email }}, {{ $('Webhook').item.json.body.success }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0813e090-0708-49de-a419-90ee98a4a336",
+      "name": "Save Attempt",
+      "credentials": {
+        "postgres": {
+          "id": "gVvXZzqbKswps4g4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://securewallet-n8n:5678/webhook/alert-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: $json.alert_type, severity: $json.severity, email: $json.email, message: $json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "f8d1ef17-9afc-4a28-b274-05c1a3a35e57",
+      "name": "Call Alert Bot",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "i0zauxXdsA5o04RE",
+          "name": "SecureWallet Webhook Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Save Attempt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Failures": {
+      "main": [
+        [
+          {
+            "node": "Too Many Failures?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Too Many Failures?": {
+      "main": [
+        [
+          {
+            "node": "Save Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Attempt": {
+      "main": [
+        [
+          {
+            "node": "Count Failures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Alert": {
+      "main": [
+        [
+          {
+            "node": "Call Alert Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "172aa5e9-67b8-41d6-9188-29fba1f75456",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3bfc2f120d5da0789771e8ebd9532b965c4129ff0b33ac50fa66be00c16cfbc"
+  },
+  "nodeGroups": [],
+  "id": "kMgs58QjouTqzloE",
+  "tags": []
+}

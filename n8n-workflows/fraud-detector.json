@@ -1,0 +1,243 @@
+{
+  "name": "Fraud Detector",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fraud-check",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "61cbcf08-17f5-499d-b2e1-a0db0d8e9ed4",
+      "name": "Webhook",
+      "webhookId": "60e8a036-59a8-4391-9c4c-3439281c967a",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "i0zauxXdsA5o04RE",
+          "name": "SecureWallet Webhook Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4966736b-add2-41af-af68-2a0e4310b8bb",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook').first().json.body;\nconst amount = Number(body.amount);\nconst recentCount = Number($input.first().json.recent_count);\n\nlet decision = \"COMPLETED\";\nlet reason = \"Looks normal\";\n\nif (recentCount >= 4) {\n  decision = \"BLOCKED\";\n  reason = \"Too many transfers in 1 minute: \" + (recentCount + 1);\n} else if (recentCount >= 2) {\n  decision = \"FLAGGED\";\n  reason = \"Rapid transfers in 1 minute: \" + (recentCount + 1);\n} else if (amount >= 800) {\n  decision = \"FLAGGED\";\n  reason = \"Large amount: \" + amount;\n}\n\nreturn [{ json: { decision, reason } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "8acb3658-7858-47f1-b81f-7c57e56f5cfe",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) AS recent_count\nFROM transactions t\nJOIN wallets w ON w.id = t.sender_wallet_id\nJOIN users u ON u.id = w.user_id\nWHERE u.email = $1\n  AND t.created_at > NOW() - INTERVAL '1 minute';",
+        "options": {
+          "queryReplacement": "={{ $json.body.senderEmail }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2c2ecc18-af6a-49d9-b676-480c1ba734a2",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "gVvXZzqbKswps4g4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "09f3bf3d-65ba-4e6e-ab9e-5ac3aa441f51",
+              "leftValue": "=   {{ $('Code in JavaScript').first().json.decision }}",
+              "rightValue": "   COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        896,
+        0
+      ],
+      "id": "56e44ae5-8dc5-47d6-9f44-89a90cfbb5fc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "   http://securewallet-n8n:5678/webhook/alert-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=   {{ JSON.stringify({\n     type: \"FRAUD_\" + $('Code in JavaScript').first().json.decision,\n     severity: $('Code in JavaScript').first().json.decision === \"BLOCKED\" ? \"HIGH\" : \"MEDIUM\",\n     email: $('Webhook').first().json.body.senderEmail,\n     message: \"Transfer of \" + $('Webhook').first().json.body.amount + \" from \" + $('Webhook').first().json.body.senderEmail + \" to \" + $('Webhook').first().json.body.receiverEmail + \" was \" + $('Code in JavaScript').first().json.decision + \". Reason: \" + $('Code in JavaScript').first().json.reason\n   }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1232,
+        -96
+      ],
+      "id": "3b331bd3-f1af-4e76-acf7-6d90a054edd3",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "i0zauxXdsA5o04RE",
+          "name": "SecureWallet Webhook Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO security_alerts (alert_type, severity, email, message)\nVALUES ($1, $2, $3, $4);",
+        "options": {
+          "queryReplacement": "={{ [   \"FRAUD_\" + $('Code in JavaScript').first().json.decision,   $('Code in JavaScript').first().json.decision === \"BLOCKED\" ? \"HIGH\" : \"MEDIUM\",   $('Webhook').first().json.body.senderEmail,   \"Transfer of \" + $('Webhook').first().json.body.amount + \" from \" + $('Webhook').first().json.body.senderEmail + \" to \" + $('Webhook').first().json.body.receiverEmail + \" was \" + $('Code in JavaScript').first().json.decision + \". Reason: \" + $('Code in JavaScript').first().json.reason ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "fc932c34-c4a0-4bc8-a44c-10b89626a3f6",
+      "name": "Save Fraud Alert",
+      "credentials": {
+        "postgres": {
+          "id": "gVvXZzqbKswps4g4",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Save Fraud Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Fraud Alert": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f47cffb3-576b-4146-950b-29c7af07adce",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3bfc2f120d5da0789771e8ebd9532b965c4129ff0b33ac50fa66be00c16cfbc"
+  },
+  "nodeGroups": [],
+  "id": "sfbPOtHKT1fZDdxJ",
+  "tags": []
+}
